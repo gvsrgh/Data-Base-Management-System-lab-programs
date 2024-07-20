@@ -1,9 +1,9 @@
-CREATE DATABASE GVCompany;
-USE GVCompany;
+CREATE DATABASE 22501A0557;
+USE 22501A0557;
 CREATE TABLE EMPLOYEE (	
-	Fname varchar(20),
+	Fname varchar(20) NOT NULL,
     Minit varchar(20),
-    Lname varchar(20),
+    Lname varchar(20) NOT NULL,
     ssn bigint primary key,
     Bdate date,
     Address varchar(40),
@@ -14,35 +14,35 @@ CREATE TABLE EMPLOYEE (
 );
 DESC EMPLOYEE;
 CREATE TABLE DEPARTMENT(
-	Dname varchar(30),
-    Dnumber int primary key,
-    Mgr_ssn bigint references EMPLOYEE(ssn),
+	Dname varchar(30) NOT NULL,
+    Dnumber int primary key NOT NULL,
+    Mgr_ssn bigint NOT NULL references EMPLOYEE(ssn) ,
     Mgr_start_date date
 );
 DESC DEPARTMENT;
 CREATE TABLE DEPT_LOCATIONS(
-	Dnumber int references DEPARTMENT(Dnumber),
-    Dlocation varchar(30),
+	Dnumber int NOT NULL references DEPARTMENT(Dnumber) ,
+    Dlocation varchar(30) NOT NULL,
     primary key(Dnumber,Dlocation)
 );
 DESC DEPT_LOCATIONS;
 CREATE TABLE PROJECT(
-	Pname varchar(30),
-    Pnumber int primary key,
+	Pname varchar(30) NOT NULL,
+    Pnumber int NOT NULL primary key,
     Plocation varchar(30),
-    Dnum int references DEPARTMENT(Dnumber)
+    Dnum int NOT NULL references DEPARTMENT(Dnumber)
 );
 DESC PROJECT;
 CREATE TABLE WORKS_ON(
-	Essn bigint references EMPLOYEE(ssn),
-    Pno int references PROJECT(Pnumber),
-    Hours Decimal(3,1),
+	Essn bigint NOT NULL references EMPLOYEE(ssn),
+    Pno int NOT NULL references PROJECT(Pnumber),
+    Hours Decimal(3,1) NOT NULL,
     primary key(Essn, Pno)
 );
 DESC WORKS_ON;
 CREATE TABLE DEPENDENT(
-	Essn bigint references EMPLOYEE(ssn),
-    Dependent_name varchar(30),
+	Essn bigint NOT NULL references EMPLOYEE(ssn) ,
+    Dependent_name varchar(30) NOT NULL,
     Gender char,
     Bdate date,
     Relationship varchar(8),
@@ -78,6 +78,8 @@ VALUES
 ('Reorganization',20,'Houston',1),
 ('Newbenefits',30,'Stafford',4);
 SELECT * FROM PROJECT;
+
+ALTER TABLE WORKS_ON MODIFY Hours Decimal(3,1) NULL;
 
 INSERT INTO WORKS_ON
 VALUES
