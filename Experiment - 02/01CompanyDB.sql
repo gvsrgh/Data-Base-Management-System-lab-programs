@@ -169,21 +169,101 @@ JOIN WORKS_ON W ON E.ssn = W.Essn
 JOIN PROJECT P ON W.Pno = P.Pnumber
 ORDER BY 
     P.Dnum;
+"TASK 1";
 #7th Query-----------------------------------------------------------
 SELECT 
-	Bdate, Address
+    Bdate, Address
 FROM
-	EMPLOYEE
+    EMPLOYEE
 WHERE
-	ConCat(Fname," ",Minit,". ",Lname) = 'John B. Smith';
+    CONCAT(Fname, " ", Minit, ". ", Lname) = 'John B. Smith';
+
 #8th Query------------------------------------------------------------
 SELECT *
 FROM EMPLOYEE
-WHERE Dno = 10;
+WHERE Dno = 5;
+
 #9th Query------------------------------------------------------------
 SELECT DISTINCT Salary
 FROM EMPLOYEE;
+
 #10th Query----------------------------------------------------------
 SELECT *
 FROM EMPLOYEE
-WHERE Address like '%Houston TX';
+WHERE Address LIKE '%Houston TX';
+
+#11th Query----------------------------------------------------------
+SELECT *
+FROM EMPLOYEE
+WHERE Bdate BETWEEN '1950-01-01' AND '1959-12-31';
+
+#12th Query----------------------------------------------------------
+ALTER TABLE DEPT_LOCATIONS ADD phone_no VARCHAR(15);
+
+#13th Query----------------------------------------------------------
+ALTER TABLE EMPLOYEE
+ADD CONSTRAINT fk_super_ssn
+FOREIGN KEY (Super_ssn) REFERENCES EMPLOYEE(Ssn);
+
+#14th Query----------------------------------------------------------
+ALTER TABLE EMPLOYEE
+MODIFY Address VARCHAR(30);
+DESC EMPLOYEE Address;
+
+#15th Query----------------------------------------------------------
+UPDATE EMPLOYEE
+SET Salary = 35000
+WHERE CONCAT(Fname, " ", Minit, " ", Lname) = 'Franklin T Wong';
+SELECT Salary FROM EMPLOYEE WHERE CONCAT(Fname, " ", Minit, " ", Lname) = 'Franklin T Wong';
+
+#16th Query----------------------------------------------------------
+UPDATE PROJECT
+SET Plocation = 'Bellaire', Dnum = 5
+WHERE Pnumber = 10;
+SELECT * FROM PROJECT WHERE Pnumber = 10;
+
+
+#17th Query----------------------------------------------------------
+UPDATE EMPLOYEE
+SET Salary = Salary * 1.10
+WHERE Dno = 5;
+SELECT Fname,Salary FROM EMPLOYEE WHERE Dno = 5;
+
+#18th Query----------------------------------------------------------
+SELECT Fname, Lname, Salary
+FROM EMPLOYEE
+WHERE Salary BETWEEN 30000 AND 40000;
+
+#19th Query----------------------------------------------------------
+SELECT Fname, Lname, Salary
+FROM EMPLOYEE
+WHERE Salary >= 35000;
+
+#20th Query----------------------------------------------------------
+SELECT *
+FROM EMPLOYEE
+WHERE Address LIKE '%Houston%' AND Salary > 30000;
+
+#21st Query----------------------------------------------------------
+SELECT *
+FROM EMPLOYEE
+WHERE Sex = 'F' AND (Dno = 4 OR Dno = 1);
+
+#22nd Query----------------------------------------------------------
+SELECT *
+FROM PROJECT
+WHERE Dnum = 10;
+
+#23rd Query----------------------------------------------------------
+DELETE FROM EMPLOYEE
+WHERE Fname = 'Joyce';
+
+#24th Query----------------------------------------------------------
+SELECT *
+FROM EMPLOYEE
+WHERE Sex = 'M';
+
+#25th Query----------------------------------------------------------
+SELECT *
+FROM DEPARTMENT
+WHERE Dname LIKE '_e%';
