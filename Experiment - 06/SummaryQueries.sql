@@ -1,5 +1,8 @@
 /*Continuation of Company DB from 
 Experiment - 03|04 : https://github.com/gvsrgh/Data-Base-Management-System-lab-programs/blob/main/Experiment%20-%2003%7C04/01CompanyDB.sql*/
+
+/*Aggregate Functions: COUNT, SUM, AVG, MAX, MIN*/
+
 /*1. Count the number of employees in each department*/
 SELECT dno, COUNT(*) AS Size
 FROM EMPLOYEE
