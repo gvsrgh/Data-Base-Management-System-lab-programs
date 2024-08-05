@@ -1,5 +1,5 @@
 
-/*-----------------Aggregate Functions----------------------------------*/
+/*-----------------String Functions----------------------------------*/
 SELECT CONCAT('My','S','QL');
 SELECT INSERT('Quadratic',3,4,'What');
 SELECT INSTR('foobarbar','bar');
