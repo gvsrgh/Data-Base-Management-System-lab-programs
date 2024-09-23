@@ -1,6 +1,6 @@
 -- Procedures for Employee Management
 
--- Creating a procedure with IN parameters (for inserting a new employee)
+-- Procedure to Insert an Employee
 /**
  * This procedure inserts a new employee into the EMPLOYEE table.
  * It takes three parameters: ssn, Fname, and Salary.
@@ -13,9 +13,9 @@ BEGIN
 END //
 DELIMITER ;
 
--- Creating a procedure to UPDATE an employee's salary
+-- Procedure to Update Employee Salary
 /**
- * This procedure updates the salary of an existing employee.
+ * This procedure updates the salary of an employee based on their SSN.
  * It takes two parameters: empSSN (employee's SSN) and newSalary.
  */
 DELIMITER //
@@ -27,9 +27,9 @@ BEGIN
 END //
 DELIMITER ;
 
--- Creating a procedure to DELETE an employee by SSN
+-- Procedure to Delete an Employee
 /**
- * This procedure deletes an employee from the EMPLOYEE table based on their SSN.
+ * This procedure deletes an employee based on their SSN.
  * It takes one parameter: empSSN.
  */
 DELIMITER //
@@ -39,81 +39,155 @@ BEGIN
 END //
 DELIMITER ;
 
--- Inserting, Updating, and Deleting an Employee
-
--- Inserting a new employee
+-- Procedure to Retrieve Employee Salary Details
 /**
- * This statement calls the InsertEmployee procedure to add a new employee with SSN 000000000, name 'Klee', and salary 35000.
- */
-CALL InsertEmployee(000000000,'Klee', 35000);
-SELECT * FROM EMPLOYEE;
-
--- Updating salary for a specific employee
-/**
- * This statement calls the UpdateEmployeeSalary procedure to update the salary of the employee with SSN 000000000 to 50000.
- */
-CALL UpdateEmployeeSalary(000000000, 50000);
-SELECT * FROM EMPLOYEE;
-
--- Deleting an employee
-/**
- * This statement calls the DeleteEmployee procedure to remove the employee with SSN 000000000 from the EMPLOYEE table.
- */
-CALL DeleteEmployee(000000000);
-SELECT * FROM EMPLOYEE;
-
--- Dropping Procedures
-/**
- * These statements drop the procedures if they exist.
- */
-DROP PROCEDURE IF EXISTS InsertEmployee; 
-DROP PROCEDURE IF EXISTS UpdateEmployeeSalary; 
-DROP PROCEDURE IF EXISTS DeleteEmployee;
-
--- Attempting to delete an employee again
-/**
- * This statement calls the DeleteEmployee procedure again to ensure the employee with SSN 000000000 is deleted.
- */
-CALL DeleteEmployee(000000000);
-
--- Function and Triggers for Employee Management
-
--- Create a function to calculate the yearly bonus (10% of salary)
-/**
- * This function calculates the yearly bonus for an employee, which is 10% of their salary.
- * It takes one parameter: emp_id (employee's SSN).
+ * This procedure retrieves the first name, last name, and salary of an employee based on their SSN.
+ * It takes empSSN as input and returns the details using OUT parameters.
  */
 DELIMITER //
-CREATE FUNCTION fn_example(emp_id INT) RETURNS DECIMAL(10,2)
-READS SQL DATA
+CREATE PROCEDURE GetEmployeeSalary(IN empSSN BIGINT, OUT firstName VARCHAR(30), OUT lastName VARCHAR(30) , OUT empSalary BIGINT)
 BEGIN
-    DECLARE emp_salary DECIMAL(10,2);
-    SELECT salary INTO emp_salary FROM EMPLOYEE WHERE ssn = emp_id;
-    RETURN emp_salary * 1.1;
+    SELECT Fname, Lname, Salary INTO firstName, lastName, empSalary
+    FROM EMPLOYEE
+    WHERE ssn = empSSN;
 END //
 DELIMITER ;
 
--- Calculating yearly bonus
+-- Procedure to Increase Employee Salary by a Percentage
 /**
- * This statement calls the fn_example function to calculate the yearly bonus for the employee with SSN 123456789.
+ * This procedure increases the salary of an employee by a given percentage.
+ * It takes empSSN and the percentage as input and returns the updated details.
  */
-SELECT fn_example(123456789) yearly_bonus57;
+DELIMITER //
+CREATE PROCEDURE IncreaseEmployeeSalary(INOUT empSSN BIGINT, IN percentage DOUBLE)
+BEGIN
+    DECLARE currentSalary BIGINT;
+    
+    -- Get current salary of the employee
+    SELECT Salary INTO currentSalary
+    FROM EMPLOYEE
+    WHERE SSN = empSSN;
+    
+    -- Update salary by the given percentage
+    UPDATE EMPLOYEE
+    SET Salary = currentSalary + (currentSalary * percentage / 100)
+    WHERE SSN = empSSN;
 
--- Dropping the function
+    -- Return the updated employee details
+    SELECT Fname, Lname, Salary 
+    FROM EMPLOYEE 
+    WHERE SSN = empSSN;
+END //
+DELIMITER ;
+
+-- Procedure to Check and Update Salary Below a Threshold
 /**
- * This statement drops the fn_example function if it exists.
+ * This procedure checks if an employee's salary is below a given threshold and updates it if necessary.
+ * It takes empSSN and the threshold as input, and returns the updated salary details.
  */
-DROP FUNCTION IF EXISTS fn_example;
+DELIMITER //
+CREATE PROCEDURE CheckAndUpdateSalary(IN empSSN BIGINT, IN threshold BIGINT)
+BEGIN
+    DECLARE currentSalary BIGINT;
 
--- Attempting to calculate yearly bonus again
+    -- Get the current salary of the employee
+    SELECT Salary INTO currentSalary
+    FROM EMPLOYEE
+    WHERE SSN = empSSN;
+
+    -- Check if salary is below the threshold, update if necessary
+    IF currentSalary < threshold THEN
+        UPDATE EMPLOYEE
+        SET Salary = threshold
+        WHERE SSN = empSSN;
+    END IF;
+
+    -- Return the updated salary details
+    SELECT Fname, Lname, Salary 
+    FROM EMPLOYEE 
+    WHERE SSN = empSSN;
+END //
+DELIMITER ;
+
+-- Cursors for Salary Management
+
+-- Procedure Using a Cursor to Increase Salary Below 35,000
 /**
- * This statement calls the fn_example function again to ensure it calculates the yearly bonus for the employee with SSN 123456789.
+ * This procedure uses a cursor to loop through employees with a salary below 35,000.
+ * It increases their salary by 10%.
  */
-SELECT fn_example(123456789) yearly_bonus57;
+DELIMITER //
+CREATE PROCEDURE tt35()
+BEGIN
+    DECLARE sal BIGINT;  -- Variable to store the salary
+    DECLARE eid BIGINT;  -- Variable to store the employee SSN
+    DECLARE salary_status VARCHAR(30) DEFAULT 'Updated';  -- Variable to store status
+    DECLARE r_f TINYINT DEFAULT FALSE;  -- Flag to check end of cursor
 
--- Creating triggers for Employee Management
+    -- Declare a cursor to fetch employees with salary less than 35,000
+    DECLARE cur_sal CURSOR FOR 
+    SELECT SSN, Salary FROM EMPLOYEE WHERE Salary < 35000;
 
--- Trigger before inserting an employee
+    -- Declare a handler to set the flag when no more rows are available
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET r_f = TRUE;
+
+    -- Open the cursor
+    OPEN cur_sal;
+
+    -- Loop through each row from the cursor
+    WHILE r_f = FALSE DO
+        -- Fetch the SSN and Salary of the employee
+        FETCH cur_sal INTO eid, sal;
+
+        -- If the employee exists, update their salary by 10%
+        IF r_f = FALSE THEN
+            UPDATE EMPLOYEE SET Salary = sal + (sal * 0.1) WHERE SSN = eid;
+            SELECT eid AS Employee_SSN, sal AS Old_Salary, sal + (sal * 0.1) AS New_Salary, salary_status AS Salary_Status;
+        END IF;
+    END WHILE;
+
+    -- Close the cursor
+    CLOSE cur_sal;
+END //
+DELIMITER ;
+
+-- Functions for Employee and Project Management
+
+-- Function to Get Total Salary of a Department
+/**
+ * This function calculates the total salary of all employees in a given department.
+ * It takes the department number as input and returns the total salary.
+ */
+DELIMITER //
+CREATE FUNCTION get_sal(deptno INT) RETURNS DECIMAL(9,2)
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE sum_sal DECIMAL(9,2);
+    SELECT SUM(Salary) INTO sum_sal FROM EMPLOYEE WHERE dno = deptno;
+    RETURN sum_sal;
+END //
+DELIMITER ;
+
+-- Function to Get Project Count for an Employee
+/**
+ * This function calculates the number of projects an employee is working on.
+ * It takes the employee SSN as input and returns the count of projects.
+ */
+DELIMITER //
+CREATE FUNCTION get_proj(eno BIGINT) RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE ecount INT;
+    SELECT COUNT(pno) INTO ecount FROM WORKS_ON WHERE Essn = eno;
+    RETURN ecount;
+END //
+DELIMITER ;
+
+-- Triggers for Employee Management
+
+-- Trigger Before Inserting an Employee
 /**
  * This trigger adds 1000 to the salary of a new employee before inserting the record into the EMPLOYEE table.
  */
@@ -126,15 +200,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Inserting a test employee
-/**
- * This statement inserts a test employee into the EMPLOYEE table.
- */
-INSERT INTO EMPLOYEE 
-VALUES ('Test','T','User',111111111,'1990-01-01','123 Test St, Test City','M',20000,NULL,1);
-SELECT * FROM EMPLOYEE WHERE ssn = 111111111;
-
--- Trigger to ensure non-negative salary
+-- Trigger to Ensure Non-Negative Salary
 /**
  * This trigger ensures that the salary of an employee cannot be updated to a negative value.
  * If an attempt is made to set a negative salary, it retains the old salary.
@@ -149,22 +215,3 @@ BEGIN
     END IF;
 END //
 DELIMITER ;
-
--- Attempt to update the salary to a negative value
-/**
- * This statement attempts to update the salary of the employee with SSN 123456789 to a negative value (-5000).
- */
-UPDATE EMPLOYEE SET salary = -5000 WHERE ssn = 123456789;
-
--- Check the salary to see if it was reset
-/**
- * This statement checks the salary of the employee with SSN 123456789 to ensure it was not set to a negative value.
- */
-SELECT Fname, Lname, salary FROM EMPLOYEE WHERE ssn = 123456789;
-
--- Dropping triggers
-/**
- * These statements drop the triggers if they exist.
- */
-DROP TRIGGER IF EXISTS before_insert_employee;
-DROP TRIGGER IF EXISTS ensure_non_negative_salary;
